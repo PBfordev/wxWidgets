@@ -458,6 +458,9 @@ wxWebViewEdgeImpl::~wxWebViewEdgeImpl()
         m_webView->remove_WebMessageReceived(m_webMessageReceivedToken);
         m_webView->remove_WebResourceRequested(m_webResourceRequestedToken);
         m_webView->remove_WindowCloseRequested(m_windowCloseRequestedToken);
+
+        if ( m_webViewController )
+            m_webViewController->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
     }
 }
 
@@ -473,6 +476,8 @@ bool wxWebViewEdgeImpl::Create()
     m_historyLoadingFromList = false;
     m_historyEnabled = true;
     m_historyPosition = -1;
+
+    m_WXAcceleratorsEnabled = false;
 
     return static_cast<wxWebViewConfigurationImplEdge*>(m_config.GetImpl())->
         CreateOrGetEnvironment(this);
@@ -726,6 +731,64 @@ HRESULT wxWebViewEdgeImpl::OnWindowCloseRequested(ICoreWebView2* WXUNUSED(sender
     return S_OK;
 }
 
+HRESULT wxWebViewEdgeImpl::OnAcceleratorKeyPressed(ICoreWebView2Controller* WXUNUSED(sender), ICoreWebView2AcceleratorKeyPressedEventArgs* args)
+{
+    if ( !m_WXAcceleratorsEnabled )
+        return S_OK;
+
+    HRESULT hr;
+    COREWEBVIEW2_KEY_EVENT_KIND keyEventKind;
+    UINT wParam;
+    INT lParam;
+    MSG msg = {};
+
+    hr = args->get_KeyEventKind(&keyEventKind);
+    if ( FAILED(hr) )
+    {
+        wxLogApiError("ICoreWebView2AcceleratorKeyPressedEventArgs::get_KeyEventKind", hr);
+        return S_OK;
+    }
+
+    hr = args->get_VirtualKey(&wParam);
+    if ( FAILED(hr) )
+    {
+        wxLogApiError("ICoreWebView2AcceleratorKeyPressedEventArgs::get_KeyEventLParam", hr);
+        return S_OK;
+    }
+
+    hr = args->get_KeyEventLParam(&lParam);
+    if ( FAILED(hr) )
+    {
+        wxLogApiError("ICoreWebView2AcceleratorKeyPressedEventArgs::get_KeyEventLParam", hr);
+        return S_OK;
+    }
+
+    switch ( keyEventKind )
+    {
+        case COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN:
+            msg.message = WM_KEYDOWN;
+            break;
+        case COREWEBVIEW2_KEY_EVENT_KIND_KEY_UP:
+            msg.message = WM_KEYUP;
+            break;
+        case COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN:
+            msg.message = WM_SYSKEYDOWN;
+            break;
+        case COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_UP:
+            msg.message = WM_SYSKEYUP;
+            break;
+    }
+    msg.wParam = wParam;
+    msg.lParam = lParam;
+
+    if ( m_ctrl->MSWTranslateMessage(&msg)
+         || wxGetTopLevelParent(m_ctrl)->MSWTranslateMessage(&msg) )
+    {
+        args->put_Handled(TRUE);
+    }
+    return S_OK;
+}
+
 HRESULT wxWebViewEdgeImpl::OnDocumentTitleChanged(ICoreWebView2* WXUNUSED(sender), IUnknown* WXUNUSED(args))
 {
     wxWebViewEvent event(wxEVT_WEBVIEW_TITLE_CHANGED,
@@ -896,6 +959,11 @@ HRESULT wxWebViewEdgeImpl::OnWebViewCreated(HRESULT result, ICoreWebView2Control
         Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
             this, &wxWebViewEdgeImpl::OnWindowCloseRequested).Get(),
         &m_windowCloseRequestedToken);
+
+    m_webViewController->add_AcceleratorKeyPressed(
+        Callback<ICoreWebView2AcceleratorKeyPressedEventHandler>(
+            this, &wxWebViewEdgeImpl::OnAcceleratorKeyPressed).Get(),
+        &m_acceleratorKeyPressedToken);
 
     // Register handlers
     for (const auto& kv : m_handlers)
@@ -1384,6 +1452,15 @@ bool wxWebViewEdge::AreBrowserAcceleratorKeysEnabled() const
     return true;
 }
 
+void wxWebViewEdge::EnableWXAccelerators(bool enable)
+{    
+    m_impl->m_WXAcceleratorsEnabled = enable;
+}
+
+bool wxWebViewEdge::AreWXAcceleratorsEnabled() const
+{
+    return m_impl->m_WXAcceleratorsEnabled;
+}
 
 bool wxWebViewEdge::SetUserAgent(const wxString& userAgent)
 {

@@ -91,6 +91,9 @@ public:
     virtual void EnableBrowserAcceleratorKeys(bool enable = true) override;
     virtual bool AreBrowserAcceleratorKeysEnabled() const override;
 
+    virtual void EnableWXAccelerators(bool enable = true) override;
+    virtual bool AreWXAcceleratorsEnabled() const override;
+
     virtual bool SetUserAgent(const wxString& userAgent) override;
     virtual wxString GetUserAgent() const override;
 

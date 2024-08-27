@@ -98,6 +98,7 @@ public:
     EventRegistrationToken m_webMessageReceivedToken = { };
     EventRegistrationToken m_webResourceRequestedToken = { };
     EventRegistrationToken m_windowCloseRequestedToken = { };
+    EventRegistrationToken m_acceleratorKeyPressedToken = { };
 
     // WebView Event handlers
     HRESULT OnNavigationStarting(ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args);
@@ -113,6 +114,8 @@ public:
     HRESULT OnAddScriptToExecuteOnDocumentedCreatedCompleted(HRESULT errorCode, LPCWSTR id);
     HRESULT OnWindowCloseRequested(ICoreWebView2* sender, IUnknown* args);
 
+    HRESULT OnAcceleratorKeyPressed(ICoreWebView2Controller* sender, ICoreWebView2AcceleratorKeyPressedEventArgs* args);
+
     void EnvironmentAvailable(ICoreWebView2Environment* environment);
     HRESULT OnWebViewCreated(HRESULT result, ICoreWebView2Controller* webViewController);
 
@@ -124,6 +127,8 @@ public:
     int m_historyPosition;
     bool m_historyLoadingFromList;
     bool m_historyEnabled;
+
+    bool m_WXAcceleratorsEnabled;
 
     void UpdateBounds();
 

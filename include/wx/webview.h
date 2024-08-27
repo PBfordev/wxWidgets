@@ -237,6 +237,8 @@ public:
     virtual void EnableAccessToDevTools(bool WXUNUSED(enable) = true) { }
     virtual void EnableBrowserAcceleratorKeys(bool WXUNUSED(enable) = true) { }
     virtual bool AreBrowserAcceleratorKeysEnabled() const { return false;  }
+    virtual void EnableWXAccelerators(bool WXUNUSED(enable) = true) { }
+    virtual bool AreWXAcceleratorsEnabled() const { return false; }
     virtual wxString GetCurrentTitle() const = 0;
     virtual wxString GetCurrentURL() const = 0;
     // TODO: handle choosing a frame when calling GetPageSource()?

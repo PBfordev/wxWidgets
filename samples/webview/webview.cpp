@@ -397,6 +397,16 @@ WebFrame::WebFrame(const wxString& url, int flags, wxWebViewWindowFeatures* wind
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
+    wxMenu* menu = new wxMenu;
+
+    menu->Append(wxID_SAVE, _("&Hello...\tCtrl+S"));
+    menu->Append(wxID_ABOUT, _("&About...\tF1"));
+    SetMenuBar(new wxMenuBar());
+    GetMenuBar()->Append(menu, _("&File"));
+    Bind(wxEVT_MENU, [](wxCommandEvent&){ wxMessageBox("Save");}, wxID_SAVE);
+    Bind(wxEVT_MENU, [](wxCommandEvent&){ wxMessageBox("About");}, wxID_ABOUT);
+
+
     // Create the toolbar
     m_toolbar = CreateToolBar(wxTB_TEXT);
 
@@ -595,6 +605,8 @@ WebFrame::WebFrame(const wxString& url, int flags, wxWebViewWindowFeatures* wind
     }
     else
         wxLogMessage("Created new window");
+
+    m_browser->EnableWXAccelerators();
 
     SetSizer(topsizer);
 
