@@ -24,6 +24,7 @@
     #include "wx/colour.h"
 #endif
 
+#include "wx/mstream.h"
 #include "wx/wfstream.h"
 #include "wx/xpmdecod.h"
 
@@ -2663,6 +2664,26 @@ bool wxImage::LoadFile( const wxString& filename,
             return true;
         }
     }
+#if wxUSE_GIF
+    else if ( type == wxBITMAP_TYPE_GIF_RESOURCE )
+    {
+        const void* data = nullptr;
+        size_t outLen = 0;
+    
+        if ( wxLoadUserResource(&data, &outLen, filename, RT_RCDATA, wxGetInstance()) )
+        {
+            wxMemoryInputStream ins(data, outLen);
+            const wxImage image(ins, wxBITMAP_TYPE_GIF);
+
+            if ( image.IsOk() )
+            {
+                *this = image;
+                return true;
+            }
+        }
+    }
+#endif // #if wxUSE_GIF
+
 #endif // HAS_LOAD_FROM_RESOURCE
 
 #if HAS_FILE_STREAMS
