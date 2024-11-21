@@ -92,7 +92,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "richtext", "..\build\msw\wx
 		{6744DAD8-9C70-574A-BFF2-9F8DDDB24A75} = {6744DAD8-9C70-574A-BFF2-9F8DDDB24A75}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6 wxWidgets Libraries", "6 wxWidgets Libraries", "{0172DD98-3CFD-416E-AF5F-100F0BC39AC8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "7 wxWidgets Libraries", "7 wxWidgets Libraries", "{0172DD98-3CFD-416E-AF5F-100F0BC39AC8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 Fundamental Samples", "1 Fundamental Samples", "{5E03E08F-336A-4384-9A1B-7077114C73F1}"
 EndProject
@@ -202,7 +202,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "auidemo", "aui\auidemo.vcxp
 		{A1A8355B-0988-528E-9CC2-B971D6266669} = {A1A8355B-0988-528E-9CC2-B971D6266669}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 Other Samples", "3 Other Samples", "{D6842442-CD97-429C-90A1-23BA6423F8F6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 Other Samples", "4 Other Samples", "{D6842442-CD97-429C-90A1-23BA6423F8F6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "drawing", "drawing\drawing.vcxproj", "{55D77C30-8A78-4D49-A75D-A7BE70D92175}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -636,7 +636,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dialup", "dialup\dialup.vcx
 		{A1A8355B-0988-528E-9CC2-B971D6266669} = {A1A8355B-0988-528E-9CC2-B971D6266669}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 Unmaintained Old Samples", "5 Unmaintained Old Samples", "{4E876BCC-A607-4D7F-9DEC-E1ADD4CE8A1E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6 Unmaintained Old Samples", "6 Unmaintained Old Samples", "{4E876BCC-A607-4D7F-9DEC-E1ADD4CE8A1E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "display", "display\display.vcxproj", "{3E314FDD-BE00-4DC2-83B2-EB3CAB3960D3}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -1455,7 +1455,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wx_exe", "dll\wx_exe.vcxpro
 		{CB5CDA61-4EC1-4F27-A2B2-4D864C299E4C} = {CB5CDA61-4EC1-4F27-A2B2-4D864C299E4C}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 Windows-specific Samples", "4 Windows-specific Samples", "{37342820-E53D-4821-B5C0-1B896C184A78}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 Windows-specific Samples", "5 Windows-specific Samples", "{37342820-E53D-4821-B5C0-1B896C184A78}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DLL", "DLL", "{70DB4AA8-D59B-4A90-BED0-2E35984DF49E}"
 EndProject
@@ -1488,9 +1488,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.6 Layout", "2.6 Layout", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenGL", "OpenGL", "{79C61EC6-281E-4A44-8DE2-01F296D79C3A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.1 Communication and Network", "3.1 Communication and Network", "{5B36FAF0-A65C-4E01-9DC4-147324CA4212}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.1 Communication and Network", "4.1 Communication and Network", "{5B36FAF0-A65C-4E01-9DC4-147324CA4212}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.2 Miscellaneous", "3.2 Miscellaneous", "{378BE512-0BD2-4D4E-9EB5-21B6EAD6784F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.2 Miscellaneous", "4.2 Miscellaneous", "{378BE512-0BD2-4D4E-9EB5-21B6EAD6784F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.3 Miscellaneous", "3.3 Miscellaneous", "{B7DAAE17-67C3-42E7-B145-30D3270D0304}"
 EndProject
