@@ -11,4 +11,18 @@
     <_wxDLLPathRel Condition = "'$(MSBuildProjectDirectory.IndexOf(`\samples\html\`))' != '-1' or '$(MSBuildProjectDirectory.IndexOf(`\samples\opengl\`))' != '-1'">$(_wxDLLPathRel)\..</_wxDLLPathRel>
     <LocalDebuggerEnvironment>PATH=$(_wxDLLPathRel)\lib\$(wxOutDirName);$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
+
+  <!--
+    Some samples have their own data files they expect to find in the CWD.
+    We must copy these files in the post-build step, so the samples executables
+    can be run from the shell from the folder with the executable.
+   -->
+ <ItemDefinitionGroup Condition="Exists('$(ProjectDir)copyfiles.cmd')">
+    <PostBuildEvent>
+      <Command>"$(MSBuildProjectDirectory)\copyfiles.cmd" "$(ProjectDir)" "$(ProjectDir)$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying sample data files...</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
 </Project>
