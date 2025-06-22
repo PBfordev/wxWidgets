@@ -460,6 +460,12 @@ void MyFrame::PopulateToolbar(wxToolBarBase* toolBar)
     // up for the current DPI, if necessary.
     toolBar->SetToolBitmapSize(FromDIP(sizeBitmap));
 
+    wxBitmap bmpfilter("filterbmp", wxBITMAP_TYPE_RESOURCE);
+    wxMask* maskfilter = new wxMask(bmpfilter, wxColour(255, 0, 0));
+
+    bmpfilter.SetMask(maskfilter);
+    toolBar->AddTool(wxID_ANY, "", bmpfilter);
+
     toolBar->AddTool(wxID_NEW, "New",
                      toolBarBitmaps[Tool_new], wxNullBitmap, wxITEM_DROPDOWN,
                      "New file", "This is help for new file tool");
