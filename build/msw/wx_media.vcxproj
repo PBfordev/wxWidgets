@@ -836,6 +836,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\common\mediactrlcmn.cpp" />
     <ClCompile Include="..\..\src\msw\mediactrl_am.cpp" />
+    <ClCompile Include="..\..\src\msw\mediactrl_mf.cpp" />
     <ClCompile Include="..\..\src\msw\mediactrl_qt.cpp" />
     <ClCompile Include="..\..\src\msw\mediactrl_wmp10.cpp" />
   </ItemGroup>

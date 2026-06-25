@@ -73,6 +73,7 @@ enum wxMediaCtrlPlayerControls
 #define wxMEDIABACKEND_GSTREAMER    wxT("wxGStreamerMediaBackend")
 #define wxMEDIABACKEND_REALPLAYER   wxT("wxRealPlayerMediaBackend")
 #define wxMEDIABACKEND_WMP10        wxT("wxWMP10MediaBackend")
+#define wxMEDIABACKEND_MF           wxT("wxMFMediaBackend")
 
 // ----------------------------------------------------------------------------
 //

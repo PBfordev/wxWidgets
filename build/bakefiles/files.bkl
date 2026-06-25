@@ -2529,6 +2529,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/msw/mediactrl_am.cpp
     src/msw/mediactrl_wmp10.cpp
     src/msw/mediactrl_qt.cpp
+    src/msw/mediactrl_mf.cpp
 </set>
 <set var="MEDIA_MSW_HDR" hints="files">
 </set>

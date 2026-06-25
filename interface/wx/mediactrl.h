@@ -207,6 +207,10 @@ public:
       mad module to play mp3s, etc.
     - @b wxMEDIABACKEND_WMP10, Use Windows Media Player 10 (Windows only).
       Works on systems with either Windows Media Player 9 or 10 installed.
+    - @b wxMEDIABACKEND_MF, Use IMFMediaEngine from Microsoft Media Foundation.
+      Available since Windows 8. Compiling requires mfmediaengine.h header present,
+      which is provided by MSVC and mingw-w64 (v12+). The application manifest
+      should have @c maxversiontested element set for at least Windows 10 v1903.
 
 
     @section mediactrl_creating_backend Creating a backend

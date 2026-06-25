@@ -2380,6 +2380,7 @@ set(MEDIA_MSW_SRC
     src/msw/mediactrl_am.cpp
     src/msw/mediactrl_wmp10.cpp
     src/msw/mediactrl_qt.cpp
+    src/msw/mediactrl_mf.cpp
 )
 
 set(MEDIA_MSW_HDR
