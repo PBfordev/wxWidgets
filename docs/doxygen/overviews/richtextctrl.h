@@ -16,11 +16,26 @@ handle different character styles, paragraph formatting, and images. It's aimed
 at editing 'natural' language text - if you need an editor that supports code
 editing, wxStyledTextCtrl is a better choice.
 
-Despite its name, it cannot currently read or write RTF (rich text format)
-files. Instead, it uses its own XML format, and can also read and write plain
-text. In future we expect to provide RTF or OpenDocument file capabilities.
-Custom file formats can be supported by creating additional file handlers and
-registering them with the control.
+Despite its name, its native rich text format is XML rather than RTF (Rich
+Text Format). It can write RTF files and copy RTF to the clipboard, but cannot
+currently read RTF. RTF export is experimental: its output may change in future
+versions. It can also read and write plain text. Custom file formats
+can be supported by creating additional file handlers and registering them
+with the control.
+
+RTF clipboard export is opt-in: call wxRichTextCtrl::EnableRTF(true) to enable
+it for a control. When constructing a Save As dialog, use that control's
+wxRichTextCtrl::GetExtWildcard() with @a save set to @true so that RTF is offered
+only while enabled. The static wxRichTextBuffer::GetExtWildcard() enumerates
+global handlers and does not reflect a particular control's setting. Explicit
+file saves and wxRichTextBuffer::GetAsRTF() remain available independently.
+
+Text boxes and floating images are written as RTF shapes, each followed by an
+in-flow copy for readers without shape support. Set the
+::wxRICHTEXT_HANDLER_RTF_NO_SHAPE_FALLBACKS handler flag with
+wxRichTextBuffer::SetHandlerFlags() to omit these copies. A shape can't contain
+another shape in Word, so text boxes inside a text box are written as tables
+with a single cell, and floating images inside a text box as inline pictures.
 
 wxRichTextCtrl is largely compatible with the wxTextCtrl API, but extends it
 where necessary. The control can be used where the native rich text
@@ -486,7 +501,7 @@ with them will be appreciated.
 @li Conversion from HTML, and a rewrite of the HTML output handler that includes CSS,
 tables, text boxes, and floating images, in addition to a simplified-HTML mode for wxHTML compatibility
 @li Open Office input and output
-@li RTF input and output
+@li RTF input
 @li A ruler control
 @li Standard editing toolbars
 @li Bitmap bullets
