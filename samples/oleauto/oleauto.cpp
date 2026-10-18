@@ -67,6 +67,8 @@ public:
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnTest(wxCommandEvent& event);
+    void OnTestNamedArgs(wxCommandEvent& event);
+    void OnTestNamedArgsScripting(wxCommandEvent& event);
 
 private:
     // any class wishing to process wxWidgets events must use this macro
@@ -84,6 +86,8 @@ enum
     OleAuto_Quit = 1,
     OleAuto_About,
     OleAuto_Test,
+    OleAuto_TestNamedArgs,
+    OleAuto_TestNamedArgsScripting,
 
     // controls start here (the numbers are, of course, arbitrary)
     OleAuto_Text = 1000
@@ -100,6 +104,8 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(OleAuto_Quit,  MyFrame::OnQuit)
     EVT_MENU(OleAuto_About, MyFrame::OnAbout)
     EVT_MENU(OleAuto_Test, MyFrame::OnTest)
+    EVT_MENU(OleAuto_TestNamedArgs, MyFrame::OnTestNamedArgs)
+    EVT_MENU(OleAuto_TestNamedArgsScripting, MyFrame::OnTestNamedArgsScripting)
 wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
@@ -151,6 +157,8 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     wxMenu *menuFile = new wxMenu;
 
     menuFile->Append(OleAuto_Test, "&Test Excel Automation...");
+    menuFile->Append(OleAuto_TestNamedArgs, "Test Named Arguments (&Excel)");
+    menuFile->Append(OleAuto_TestNamedArgsScripting, "Test Named Arguments (&Scripting Runtime)");
     menuFile->Append(OleAuto_About, "&About");
     menuFile->AppendSeparator();
     menuFile->Append(OleAuto_Quit, "E&xit");
@@ -232,4 +240,103 @@ void MyFrame::OnTest(wxCommandEvent& WXUNUSED(event))
         wxLogError("Could not put Bold property to active cell.");
         return;
     }
+}
+
+void MyFrame::OnTestNamedArgs(wxCommandEvent& WXUNUSED(event))
+{
+    wxAutomationObject excelObject;
+    if ( !excelObject.GetInstance("Excel.Application") )
+    {
+        wxLogError("Could not create Excel object.");
+        return;
+    }
+
+    // Application.ConvertFormula(Formula, FromReferenceStyle, ToReferenceStyle)
+    // converts "=A1" to "=RC" when called correctly.
+    const long xlA1 = 1, xlR1C1 = -4150;
+    wxString allPositional, allNamed, positionalAndNamed;
+    bool putUnnamed, putNamed;
+
+    {
+        wxLogNull noLog; // avoid message boxes from failed calls
+
+        allPositional = excelObject.CallMethod("ConvertFormula",
+                            "=A1", xlA1, xlR1C1).MakeString();
+
+        allNamed = excelObject.CallMethod("ConvertFormula",
+                            wxVariant("=A1", "Formula"),
+                            wxVariant(xlA1, "FromReferenceStyle"),
+                            wxVariant(xlR1C1, "ToReferenceStyle")).MakeString();
+
+        // Bug: fails, the name of the last argument is not passed to
+        // GetIDsOfNames() when it is preceded by a positional argument.
+        positionalAndNamed = excelObject.CallMethod("ConvertFormula",
+                            "=A1", xlA1,
+                            wxVariant(xlR1C1, "ToReferenceStyle")).MakeString();
+
+        putUnnamed = excelObject.PutProperty("Visible", wxVariant(true));
+
+        // Bug: fails, the value name is passed to GetIDsOfNames() as if it
+        // were a parameter name.
+        putNamed = excelObject.PutProperty("Visible", wxVariant(true, "Visible"));
+    }
+
+    wxLogMessage("ConvertFormula, all positional: '%s'\n"
+                 "ConvertFormula, all named: '%s'\n"
+                 "ConvertFormula, positional followed by named: '%s'\n"
+                 "PutProperty, unnamed value: %s\n"
+                 "PutProperty, named value: %s",
+                 allPositional, allNamed, positionalAndNamed,
+                 putUnnamed ? "OK" : "FAILED",
+                 putNamed ? "OK" : "FAILED");
+}
+
+// Same as OnTestNamedArgs() but using Microsoft Scripting Runtime objects
+// which are part of Windows, so Excel is not needed.
+void MyFrame::OnTestNamedArgsScripting(wxCommandEvent& WXUNUSED(event))
+{
+    wxAutomationObject fso, dict;
+    if ( !fso.CreateInstance("Scripting.FileSystemObject")
+         || !dict.CreateInstance("Scripting.Dictionary") )
+    {
+        wxLogError("Could not create Scripting Runtime objects.");
+        return;
+    }
+
+    // FileSystemObject.BuildPath(Path, Name) returns "C:\Dir\File.txt" here.
+    wxString allPositional, allNamed, positionalAndNamed;
+    bool putUnnamed, putNamed;
+
+    {
+        wxLogNull noLog; // avoid message boxes from failed calls
+
+        allPositional = fso.CallMethod("BuildPath",
+                            "C:\\Dir", "File.txt").MakeString();
+
+        allNamed = fso.CallMethod("BuildPath",
+                            wxVariant("C:\\Dir", "Path"),
+                            wxVariant("File.txt", "Name")).MakeString();
+
+        // Bug: fails, the name of the last argument is not passed to
+        // GetIDsOfNames() when it is preceded by a positional argument.
+        positionalAndNamed = fso.CallMethod("BuildPath",
+                            "C:\\Dir",
+                            wxVariant("File.txt", "Name")).MakeString();
+
+        // Dictionary.CompareMode can be changed while the dictionary is empty.
+        putUnnamed = dict.PutProperty("CompareMode", wxVariant(1L));
+
+        // Bug: fails, the value name is passed to GetIDsOfNames() as if it
+        // were a parameter name.
+        putNamed = dict.PutProperty("CompareMode", wxVariant(0L, "CompareMode"));
+    }
+
+    wxLogMessage("BuildPath, all positional: '%s'\n"
+                 "BuildPath, all named: '%s'\n"
+                 "BuildPath, positional followed by named: '%s'\n"
+                 "PutProperty, unnamed value: %s\n"
+                 "PutProperty, named value: %s",
+                 allPositional, allNamed, positionalAndNamed,
+                 putUnnamed ? "OK" : "FAILED",
+                 putNamed ? "OK" : "FAILED");
 }
