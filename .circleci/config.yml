@@ -1,97 +1,22 @@
-# Config file for CI jobs on CircleCI (circleci.com).
+# Setup config for CI jobs on CircleCI (circleci.com).
+#
+# The actual jobs are defined in continue_config.yml and only run if
+# something other than the Windows-only code has changed.
 version: 2.1
 
-jobs:
-  build-fedora:
-    docker:
-      - image: fedora
-    steps:
-      - run:
-          name: Install Git
-          command: dnf install -y git
+setup: true
 
-      - checkout:
-          method: blobless
-
-      - run:
-          name: Install dependencies
-          command: |
-            # Do _not_ use the CPU count returned by build/tools/proc_count.sh
-            # for building, it is too high (36 logical CPUs) and results in
-            # running out of memory, so limit ourselves to just 2 CPUs we're
-            # supposed to be using in Docker Medium resource class.
-            wxPROC_COUNT=2
-            echo wxBUILD_ARGS=-j$wxPROC_COUNT >> $BASH_ENV
-
-            # Get extra conversions for iconv used by the tests and langpacks
-            # to run the tests using the corresponding locales that would be
-            # skipped otherwise.
-            export WX_EXTRA_PACKAGES='ccache glibc-gconv-extra langpacks-core-de langpacks-core-en langpacks-core-fr langpacks-core-sv'
-            ./build/tools/before_install.sh
-
-            echo "PATH=/usr/lib64/ccache:$PATH" >> $BASH_ENV
-
-      - run:
-          name: Checkout required submodules
-          command: |
-            git submodule update --init 3rdparty/catch 3rdparty/nanosvg src/stc/scintilla src/stc/lexilla
-
-      - restore_cache:
-          name: Restore ccache
-          keys:
-            - ccache-v1-{{ arch }}-{{ .Branch }}
-            - ccache-v1-{{ arch }}
-
-      - run:
-          name: Configure
-          command: ./configure --disable-debug-info
-
-      - run:
-          name: Build libraries
-          command: |
-            make -k $wxBUILD_ARGS CXXFLAGS='-Werror -Wno-error=cpp'
-
-      - run:
-          name: Build tests
-          command: |
-            make -k $wxBUILD_ARGS CXXFLAGS='-Werror -Wno-error=cpp' -C tests
-
-      - run:
-          name: Run tests
-          command: |
-            cd tests
-            WX_TEST_WEBREQUEST_URL="0" ./test
-
-      - run:
-          name: Run GUI tests
-          command: |
-            cat > /usr/local/bin/bwrap \<<'EOF'
-            #!/bin/sh
-            # glycin's loader sandbox needs user namespaces unavailable in this container;
-            # run glycin image loaders unsandboxed, pass everything else to the real bwrap.
-            for a in "$@"; do case "$a" in /usr/libexec/glycin-loaders/*)
-              while [ $# -gt 0 ]; do case "$1" in /usr/libexec/glycin-loaders/*) exec "$@";; esac; shift; done;;
-            esac; done
-            exec /usr/bin/bwrap "$@"
-            EOF
-            chmod +x /usr/local/bin/bwrap
-
-            cd tests
-            wlheadless-run -- ./test_gui
-
-      - run:
-          name: Show ccache statistics
-          when: always
-          command: ccache -vv -s
-
-      - save_cache:
-          name: Save ccache
-          when: always
-          key: ccache-v1-{{ arch }}-{{ .Branch }}-{{ .BuildNum }}
-          paths:
-            - ~/.cache/ccache
+orbs:
+  path-filtering: circleci/path-filtering@3.0.0
 
 workflows:
-  build:
+  setup:
     jobs:
-      - build-fedora
+      - path-filtering/filter:
+          base-revision: master
+          config-path: .circleci/continue_config.yml
+          mapping: |
+            .* run-build true
+          exclude: |
+            include/wx/msw/.*
+            src/msw/.*
