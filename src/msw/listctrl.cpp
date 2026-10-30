@@ -1700,10 +1700,20 @@ wxSize wxListCtrl::MSWGetBestViewRect(int x, int y) const
     // is not needed, but does not reserve space for the vertical scrollbar,
     // even when it is used. This doesn't make any sense, but using this logic
     // results in correct result, i.e. just enough space, in all cases.
+    //
+    // Except that in list view the control doesn't reserve any space for the
+    // horizontal scrollbar, so we need to add it if it's shown instead.
     const DWORD mswStyle = ::GetWindowLong(GetHwnd(), GWL_STYLE);
 
-    if ( !(mswStyle & WS_HSCROLL) )
+    if ( (mswStyle & LVS_TYPEMASK) == LVS_LIST )
+    {
+        if ( mswStyle & WS_HSCROLL )
+            size.y += GetScrollbarSize(wxHORIZONTAL);
+    }
+    else if ( !(mswStyle & WS_HSCROLL) )
+    {
         size.y -= GetScrollbarSize(wxHORIZONTAL);
+    }
 
     if ( mswStyle & WS_VSCROLL )
         size.x += GetScrollbarSize(wxVERTICAL);
