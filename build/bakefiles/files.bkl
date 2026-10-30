@@ -3073,6 +3073,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/ribbon/art_internal.cpp
     src/ribbon/art_msw.cpp
     src/ribbon/art_aui.cpp
+    src/ribbon/art_mso.cpp
     src/ribbon/art_msw_flat.cpp
     src/ribbon/backstage.cpp
     src/ribbon/backstagecontrols.cpp
@@ -3087,6 +3088,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 </set>
 <set var="RIBBON_HDR" hints="files">
     wx/ribbon/art.h
+    wx/ribbon/art_mso.h
     wx/ribbon/art_internal.h
     wx/ribbon/backstage.h
     wx/ribbon/backstagecontrols.h
