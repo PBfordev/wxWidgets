@@ -16,6 +16,14 @@
 #include "wx/textctrl.h"
 #include "wx/ribbon/backstage.h"
 #include "wx/ribbon/backstagecontrols.h"
+// wxRibbonMSOArtProvider is only available with SVG and graphics context
+// support.
+#if defined(wxHAS_SVG) && wxUSE_GRAPHICS_CONTEXT
+    #define USE_MSO_PROVIDER 1
+    #include "wx/ribbon/art_mso.h"
+#else
+    #define USE_MSO_PROVIDER 0
+#endif
 #include "wx/ribbon/bar.h"
 #include "wx/ribbon/buttonbar.h"
 #include "wx/ribbon/gallery.h"
@@ -69,6 +77,7 @@ public:
         ID_AUI_PROVIDER,
         ID_MSW_PROVIDER,
         ID_MSW_FLAT_PROVIDER,
+        ID_MSO_PROVIDER,
         ID_MAIN_TOOLBAR,
         ID_POSITION_TOP,
         ID_POSITION_TOP_ICONS,
@@ -140,6 +149,9 @@ public:
     void OnAUIProvider(wxRibbonButtonBarEvent& evt);
     void OnMSWProvider(wxRibbonButtonBarEvent& evt);
     void OnMSWFlatProvider(wxRibbonButtonBarEvent& evt);
+#if USE_MSO_PROVIDER
+    void OnMSOProvider(wxRibbonButtonBarEvent& evt);
+#endif
     void OnJustify(wxRibbonToolBarEvent& evt);
     void OnJustifyUpdateUI(wxUpdateUIEvent& evt);
     void OnNew(wxRibbonToolBarEvent& evt);
@@ -187,8 +199,10 @@ protected:
     wxColour GetGalleryColour(wxRibbonGallery *gallery,
         wxRibbonGalleryItem* item, wxString* name);
     void ResetGalleryArtProviders();
+    void SetSchemeColours(const wxColour& primary, const wxColour& secondary);
     void SetArtProvider(int button_id, wxRibbonArtProvider* prov);
     void SetBarStyle(long style);
+    void UpdateTabCtrlMargins();
 
     wxPanel* m_panel;
     wxRibbonBar* m_ribbon;
@@ -242,6 +256,9 @@ EVT_RIBBONBUTTONBAR_CLICKED(ID_DEFAULT_PROVIDER, MyFrame::OnDefaultProvider)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_AUI_PROVIDER, MyFrame::OnAUIProvider)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_MSW_PROVIDER, MyFrame::OnMSWProvider)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_MSW_FLAT_PROVIDER, MyFrame::OnMSWFlatProvider)
+#if USE_MSO_PROVIDER
+EVT_RIBBONBUTTONBAR_CLICKED(ID_MSO_PROVIDER, MyFrame::OnMSOProvider)
+#endif
 EVT_RIBBONBUTTONBAR_CLICKED(ID_SELECTION_EXPAND_H, MyFrame::OnSelectionExpandHButton)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_SELECTION_EXPAND_V, MyFrame::OnSelectionExpandVButton)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_SELECTION_CONTRACT, MyFrame::OnSelectionContractButton)
@@ -434,6 +451,21 @@ static const char msw_flat_style_svg[] =
     "<rect x='5' y='24' width='22' height='2' fill='#BBB'/>"
     "</svg>";
 
+#if USE_MSO_PROVIDER
+static const char mso_style_svg[] =
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+    "<rect x='1' y='1' width='30' height='30' rx='4' fill='#F3F3F3'/>"
+    "<rect x='4' y='5' width='7' height='2' rx='1' fill='#555'/>"
+    "<rect x='13' y='5' width='7' height='2' rx='1' fill='#555'/>"
+    "<rect x='13' y='9' width='7' height='2' rx='1' fill='#185ABD'/>"
+    "<rect x='3' y='13' width='26' height='16' rx='3' fill='#FFF' stroke='#D0D0D0'"
+    " stroke-width='1'/>"
+    "<rect x='6' y='16' width='6' height='7' rx='1' fill='#185ABD' opacity='0.7'/>"
+    "<rect x='15.5' y='16' width='1' height='10' fill='#C8C8C8'/>"
+    "<rect x='19' y='16' width='7' height='7' rx='1' fill='#185ABD' opacity='0.4'/>"
+    "</svg>";
+#endif // USE_MSO_PROVIDER
+
 // -- Miscellaneous icons ---------------------------------------------------
 
 static const char ribbon_svg[] =
@@ -500,6 +532,14 @@ MyFrame::MyFrame()
                                 | wxRIBBON_BAR_SHOW_TOGGLE_BUTTON
                                 | wxRIBBON_BAR_SHOW_HELP_BUTTON
                                 );
+
+#if USE_MSO_PROVIDER
+    // Use the Microsoft Office-like art provider by default. As in Office,
+    // the File tab looks just like the other tabs with it.
+    m_ribbon->SetArtProvider(new wxRibbonMSOArtProvider);
+    m_ribbon->StyleBackstageTab(false);
+#endif
+    UpdateTabCtrlMargins();
 
     // Press F10 (the default trigger key) to try keyboard access mode.
     m_ribbon->SetToggleButtonKeyTip("Q");
@@ -676,12 +716,21 @@ MyFrame::MyFrame()
             MakeSvgBundle(msw_style_svg, wxSize(32, 32)));
         m_provider_bar->AddToggleButton(ID_MSW_FLAT_PROVIDER, "MSW Flat Provider",
             MakeSvgBundle(msw_flat_style_svg, wxSize(32, 32)));
+#if USE_MSO_PROVIDER
+        m_provider_bar->AddToggleButton(ID_MSO_PROVIDER, "MSO Provider",
+            MakeSvgBundle(mso_style_svg, wxSize(32, 32)));
+#endif
         m_provider_bar->SetKeyTip(ID_DEFAULT_PROVIDER, "D");
         m_provider_bar->SetKeyTip(ID_AUI_PROVIDER, "I");
         m_provider_bar->SetKeyTip(ID_MSW_PROVIDER, "M");
         m_provider_bar->SetKeyTip(ID_MSW_FLAT_PROVIDER, "F");
+#if USE_MSO_PROVIDER
+        m_provider_bar->SetKeyTip(ID_MSO_PROVIDER, "O");
 
+        m_provider_bar->ToggleButton(ID_MSO_PROVIDER, true);
+#else
         m_provider_bar->ToggleButton(ID_DEFAULT_PROVIDER, true);
+#endif
         wxRibbonPanel *primary_panel = new wxRibbonPanel(scheme, wxID_ANY,
             "Primary Colour", MakeSvgBundle(colours_svg, wxSize(16, 16)));
         m_primary_gallery = PopulateColoursPanel(primary_panel,
@@ -1008,16 +1057,15 @@ void MyFrame::SetBarStyle(long style)
     m_ribbon->SetWindowStyleFlag(style);
     wxBoxSizer *pTopSize = reinterpret_cast<wxBoxSizer*>(m_panel->GetSizer());
     wxRibbonToolBar *pToolbar = wxDynamicCast(FindWindow(ID_MAIN_TOOLBAR), wxRibbonToolBar);
+    UpdateTabCtrlMargins();
     if(style & wxRIBBON_BAR_FLOW_VERTICAL)
     {
-        m_ribbon->SetTabCtrlMargins(10, 10);
         pTopSize->SetOrientation(wxHORIZONTAL);
         if(pToolbar)
             pToolbar->SetRows(3, 5);
     }
     else
     {
-        m_ribbon->SetTabCtrlMargins(50, 20);
         pTopSize->SetOrientation(wxVERTICAL);
         if(pToolbar)
             pToolbar->SetRows(2, 3);
@@ -1025,6 +1073,41 @@ void MyFrame::SetBarStyle(long style)
     m_ribbon->Realise();
     m_panel->Layout();
     m_ribbon->Thaw();
+}
+
+void MyFrame::UpdateTabCtrlMargins()
+{
+    const long style = m_ribbon->GetWindowStyleFlag();
+    if ( style & wxRIBBON_BAR_FLOW_VERTICAL )
+    {
+        m_ribbon->SetTabCtrlMargins(10, 10);
+        return;
+    }
+
+#if USE_MSO_PROVIDER
+    if ( dynamic_cast<wxRibbonMSOArtProvider*>(m_ribbon->GetArtProvider()) )
+    {
+        // Like in Microsoft Office, the first tab starts at the left edge,
+        // while the space on the right is reserved for the toggle and help
+        // buttons, which are 24 DIPs wide with this provider.
+        int right = FromDIP(8);
+        if ( style & wxRIBBON_BAR_SHOW_TOGGLE_BUTTON )
+            right += FromDIP(28);
+        if ( style & wxRIBBON_BAR_SHOW_HELP_BUTTON )
+            right += FromDIP(28);
+        m_ribbon->SetTabCtrlMargins(FromDIP(4), right);
+    }
+    else
+#endif // USE_MSO_PROVIDER
+    {
+        // These are the default margins used by wxRibbonBar.
+        int right = 20;
+        if ( style & wxRIBBON_BAR_SHOW_TOGGLE_BUTTON )
+            right += 20;
+        if ( style & wxRIBBON_BAR_SHOW_HELP_BUTTON )
+            right += 20;
+        m_ribbon->SetTabCtrlMargins(50, right);
+    }
 }
 
 MyFrame::~MyFrame()
@@ -1140,11 +1223,7 @@ void MyFrame::OnPrimaryColourSelect(wxRibbonGalleryEvent& evt)
     wxString name;
     wxColour colour = GetGalleryColour(evt.GetGallery(), evt.GetGalleryItem(), &name);
     AddText("Colour \"" + name + "\" selected as primary.");
-    wxColour secondary, tertiary;
-    m_ribbon->GetArtProvider()->GetColourScheme(nullptr, &secondary, &tertiary);
-    m_ribbon->GetArtProvider()->SetColourScheme(colour, secondary, tertiary);
-    ResetGalleryArtProviders();
-    m_ribbon->Refresh();
+    SetSchemeColours(colour, wxNullColour);
 }
 
 void MyFrame::OnSecondaryColourSelect(wxRibbonGalleryEvent& evt)
@@ -1152,9 +1231,43 @@ void MyFrame::OnSecondaryColourSelect(wxRibbonGalleryEvent& evt)
     wxString name;
     wxColour colour = GetGalleryColour(evt.GetGallery(), evt.GetGalleryItem(), &name);
     AddText("Colour \"" + name + "\" selected as secondary.");
-    wxColour primary, tertiary;
-    m_ribbon->GetArtProvider()->GetColourScheme(&primary, nullptr, &tertiary);
-    m_ribbon->GetArtProvider()->SetColourScheme(primary, colour, tertiary);
+    SetSchemeColours(wxNullColour, colour);
+}
+
+// Change the primary and/or secondary colour of the scheme, the invalid ones
+// are left unchanged.
+void MyFrame::SetSchemeColours(const wxColour& primary, const wxColour& secondary)
+{
+    wxRibbonArtProvider* const art = m_ribbon->GetArtProvider();
+    wxColour p, s, t;
+
+#if USE_MSO_PROVIDER
+    // The colours set with SetColourScheme() are lost when the system colours
+    // change, e.g. when switching between the light and dark themes, so set
+    // them for the current appearance only with this provider, which keeps
+    // them and restores them when switching back to this appearance. The
+    // colours not set for it remain invalid, i.e. default.
+    if ( auto mso = dynamic_cast<wxRibbonMSOArtProvider*>(art) )
+    {
+        using Appearance = wxRibbonMSOArtProvider::Appearance;
+        const Appearance appearance = wxSystemSettings::GetAppearance().IsDark()
+                                        ? Appearance::Dark
+                                        : Appearance::Light;
+        mso->GetAppearanceColourScheme(appearance, &p, &s, &t);
+        mso->SetAppearanceColourScheme(appearance,
+                                       primary.IsOk() ? primary : p,
+                                       secondary.IsOk() ? secondary : s,
+                                       t);
+    }
+    else
+#endif // USE_MSO_PROVIDER
+    {
+        art->GetColourScheme(&p, &s, &t);
+        art->SetColourScheme(primary.IsOk() ? primary : p,
+                             secondary.IsOk() ? secondary : s,
+                             t);
+    }
+
     ResetGalleryArtProviders();
     m_ribbon->Refresh();
 }
@@ -1563,6 +1676,14 @@ void MyFrame::OnMSWFlatProvider(wxRibbonButtonBarEvent& WXUNUSED(evt))
     SetArtProvider(ID_MSW_FLAT_PROVIDER, new wxRibbonMSWFlatArtProvider);
 }
 
+#if USE_MSO_PROVIDER
+void MyFrame::OnMSOProvider(wxRibbonButtonBarEvent& WXUNUSED(evt))
+{
+    m_ribbon->DismissExpandedPanel();
+    SetArtProvider(ID_MSO_PROVIDER, new wxRibbonMSOArtProvider);
+}
+#endif // USE_MSO_PROVIDER
+
 void MyFrame::SetArtProvider(int button_id, wxRibbonArtProvider *prov)
 {
     m_ribbon->Freeze();
@@ -1583,6 +1704,14 @@ void MyFrame::SetArtProvider(int button_id, wxRibbonArtProvider *prov)
         button_id == ID_MSW_PROVIDER);
     m_provider_bar->ToggleButton(ID_MSW_FLAT_PROVIDER,
         button_id == ID_MSW_FLAT_PROVIDER);
+#if USE_MSO_PROVIDER
+    m_provider_bar->ToggleButton(ID_MSO_PROVIDER,
+        button_id == ID_MSO_PROVIDER);
+#endif
+
+    // The MSO provider draws the File tab like all the other ones.
+    m_ribbon->StyleBackstageTab(button_id != ID_MSO_PROVIDER);
+    UpdateTabCtrlMargins();
 
     m_ribbon->Realize();
     m_ribbon->Thaw();

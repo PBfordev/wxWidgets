@@ -1160,7 +1160,7 @@ public:
     @library{wxribbon}
     @category{ribbon}
 
-    @see wxRibbonMSWArtProvider, wxRibbonAUIArtProvider
+    @see wxRibbonMSWArtProvider, wxRibbonAUIArtProvider, wxRibbonMSOArtProvider
 */
 class wxRibbonMSWFlatArtProvider : public wxRibbonMSWArtProvider
 {

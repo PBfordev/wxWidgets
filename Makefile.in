@@ -2302,6 +2302,7 @@ RIBBONDLL_OBJECTS =  \
 	ribbondll_art_internal.o \
 	ribbondll_art_msw.o \
 	ribbondll_art_aui.o \
+	ribbondll_art_mso.o \
 	ribbondll_art_msw_flat.o \
 	ribbondll_backstage.o \
 	ribbondll_backstagecontrols.o \
@@ -2324,6 +2325,7 @@ RIBBONLIB_OBJECTS =  \
 	ribbonlib_art_internal.o \
 	ribbonlib_art_msw.o \
 	ribbonlib_art_aui.o \
+	ribbonlib_art_mso.o \
 	ribbonlib_art_msw_flat.o \
 	ribbonlib_backstage.o \
 	ribbonlib_backstagecontrols.o \
@@ -4363,6 +4365,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS =  \
 	monodll_art_internal.o \
 	monodll_art_msw.o \
 	monodll_art_aui.o \
+	monodll_art_mso.o \
 	monodll_art_msw_flat.o \
 	monodll_backstage.o \
 	monodll_backstagecontrols.o \
@@ -6156,6 +6159,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS_1 =  \
 	monolib_art_internal.o \
 	monolib_art_msw.o \
 	monolib_art_aui.o \
+	monolib_art_mso.o \
 	monolib_art_msw_flat.o \
 	monolib_backstage.o \
 	monolib_backstagecontrols.o \
@@ -17022,6 +17026,9 @@ monodll_art_msw.o: $(srcdir)/src/ribbon/art_msw.cpp $(MONODLL_ODEP)
 monodll_art_aui.o: $(srcdir)/src/ribbon/art_aui.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/ribbon/art_aui.cpp
 
+monodll_art_mso.o: $(srcdir)/src/ribbon/art_mso.cpp $(MONODLL_ODEP)
+	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/ribbon/art_mso.cpp
+
 monodll_art_msw_flat.o: $(srcdir)/src/ribbon/art_msw_flat.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/ribbon/art_msw_flat.cpp
 
@@ -21827,6 +21834,9 @@ monolib_art_msw.o: $(srcdir)/src/ribbon/art_msw.cpp $(MONOLIB_ODEP)
 
 monolib_art_aui.o: $(srcdir)/src/ribbon/art_aui.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_aui.cpp
+
+monolib_art_mso.o: $(srcdir)/src/ribbon/art_mso.cpp $(MONOLIB_ODEP)
+	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_mso.cpp
 
 monolib_art_msw_flat.o: $(srcdir)/src/ribbon/art_msw_flat.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_msw_flat.cpp
@@ -34434,6 +34444,9 @@ ribbondll_art_msw.o: $(srcdir)/src/ribbon/art_msw.cpp $(RIBBONDLL_ODEP)
 ribbondll_art_aui.o: $(srcdir)/src/ribbon/art_aui.cpp $(RIBBONDLL_ODEP)
 	$(CXXC) -c -o $@ $(RIBBONDLL_CXXFLAGS) $(srcdir)/src/ribbon/art_aui.cpp
 
+ribbondll_art_mso.o: $(srcdir)/src/ribbon/art_mso.cpp $(RIBBONDLL_ODEP)
+	$(CXXC) -c -o $@ $(RIBBONDLL_CXXFLAGS) $(srcdir)/src/ribbon/art_mso.cpp
+
 ribbondll_art_msw_flat.o: $(srcdir)/src/ribbon/art_msw_flat.cpp $(RIBBONDLL_ODEP)
 	$(CXXC) -c -o $@ $(RIBBONDLL_CXXFLAGS) $(srcdir)/src/ribbon/art_msw_flat.cpp
 
@@ -34475,6 +34488,9 @@ ribbonlib_art_msw.o: $(srcdir)/src/ribbon/art_msw.cpp $(RIBBONLIB_ODEP)
 
 ribbonlib_art_aui.o: $(srcdir)/src/ribbon/art_aui.cpp $(RIBBONLIB_ODEP)
 	$(CXXC) -c -o $@ $(RIBBONLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_aui.cpp
+
+ribbonlib_art_mso.o: $(srcdir)/src/ribbon/art_mso.cpp $(RIBBONLIB_ODEP)
+	$(CXXC) -c -o $@ $(RIBBONLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_mso.cpp
 
 ribbonlib_art_msw_flat.o: $(srcdir)/src/ribbon/art_msw_flat.cpp $(RIBBONLIB_ODEP)
 	$(CXXC) -c -o $@ $(RIBBONLIB_CXXFLAGS) $(srcdir)/src/ribbon/art_msw_flat.cpp
