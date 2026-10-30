@@ -543,7 +543,7 @@ void wxRibbonPage::OnSize(wxSizeEvent& evt)
 
     if (m_art)
     {
-        wxMemoryDC temp_dc;
+        wxInfoDC temp_dc(this);
         wxRect invalid_rect = m_art->GetPageBackgroundRedrawArea(temp_dc, this, m_old_size, new_size);
         Refresh(true, &invalid_rect);
     }
@@ -818,7 +818,7 @@ bool wxRibbonPage::ShowScrollButtons()
 
     if(show_left)
     {
-        wxMemoryDC temp_dc;
+        wxInfoDC temp_dc(this);
         wxSize size;
         long direction;
         if(GetMajorAxis() == wxHORIZONTAL)
@@ -859,7 +859,7 @@ bool wxRibbonPage::ShowScrollButtons()
 
     if(show_right)
     {
-        wxMemoryDC temp_dc;
+        wxInfoDC temp_dc(this);
         wxSize size;
         long direction;
         if(GetMajorAxis() == wxHORIZONTAL)
