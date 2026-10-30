@@ -408,6 +408,20 @@ wxSocketError wxSocketImpl::CreateServer()
 
     PostCreation();
 
+#if wxUSE_IPV6 && defined(IPV6_V6ONLY)
+    // Make IPv6 server sockets accept IPv4 connections too, as they already do
+    // by default under Linux and macOS, but not under Windows, where
+    // IPV6_V6ONLY is on by default and so IPv4 clients couldn't connect to a
+    // server using wxIPV6address. Notice that we ignore errors here as some
+    // systems (e.g. OpenBSD) don't support dual-stack sockets at all.
+    if ( m_local.GetFamily() == wxSockAddressImpl::FAMILY_INET6 )
+    {
+        const int v6only = 0;
+        setsockopt(m_fd, IPPROTO_IPV6, IPV6_V6ONLY,
+                   reinterpret_cast<const char *>(&v6only), sizeof(v6only));
+    }
+#endif // wxUSE_IPV6 && IPV6_V6ONLY
+
     // and then bind to and listen on it
     //
     // FIXME: should we test for m_dobind here?

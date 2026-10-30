@@ -202,6 +202,12 @@ public:
         Before trying to accept new connections, remember to test whether it succeeded
         with wxSocketBase:IsOk().
 
+        If @a address is a wxIPV6address, the server accepts both IPv6 and
+        IPv4 connections on the platforms supporting dual-stack sockets
+        (which includes all the major ones). Note that before wxWidgets 3.3.5
+        this was not the case under MSW, where such server only accepted IPv6
+        connections.
+
         @param address
             Specifies the local address for the server (e.g. port number).
         @param flags
