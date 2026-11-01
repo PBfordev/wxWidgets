@@ -107,6 +107,9 @@ public:
         ID_SMALL_BUTTON_4,
         ID_SMALL_BUTTON_5,
         ID_SMALL_BUTTON_6,
+        ID_THEME_SYSTEM,
+        ID_THEME_LIGHT,
+        ID_THEME_DARK,
         ID_BACKSTAGE_INFO,
         ID_BACKSTAGE_NEW,
         ID_BACKSTAGE_OPEN,
@@ -176,6 +179,7 @@ public:
     void OnShowPages(wxRibbonButtonBarEvent& evt);
     void OnPlusMinus(wxRibbonButtonBarEvent& evt);
     void OnChangeLabel(wxRibbonButtonBarEvent& evt);
+    void OnTheme(wxRibbonButtonBarEvent& evt);
     void OnTogglePanels(wxCommandEvent& evt);
     void OnRibbonBarToggled(wxRibbonBarEvent& evt);
     void OnRibbonBarHelpClicked(wxRibbonBarEvent& evt);
@@ -224,6 +228,10 @@ protected:
 
     bool m_plus_minus_state;
     bool m_change_label_state;
+
+    // The bar with the theme buttons and the button of the theme in use.
+    wxRibbonButtonBar* m_theme_bar;
+    int m_theme_id = ID_THEME_SYSTEM;
 
     wxDECLARE_EVENT_TABLE();
 };
@@ -304,6 +312,9 @@ EVT_RIBBONBUTTONBAR_CLICKED(ID_HIDE_PAGES, MyFrame::OnHidePages)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_SHOW_PAGES, MyFrame::OnShowPages)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_PLUS_MINUS, MyFrame::OnPlusMinus)
 EVT_RIBBONBUTTONBAR_CLICKED(ID_CHANGE_LABEL, MyFrame::OnChangeLabel)
+EVT_RIBBONBUTTONBAR_CLICKED(ID_THEME_SYSTEM, MyFrame::OnTheme)
+EVT_RIBBONBUTTONBAR_CLICKED(ID_THEME_LIGHT, MyFrame::OnTheme)
+EVT_RIBBONBUTTONBAR_CLICKED(ID_THEME_DARK, MyFrame::OnTheme)
 EVT_RIBBONBAR_TOGGLED(wxID_ANY, MyFrame::OnRibbonBarToggled)
 EVT_RIBBONBAR_HELP_CLICK(wxID_ANY, MyFrame::OnRibbonBarHelpClicked)
 EVT_SIZE(MyFrame::OnSizeEvent)
@@ -500,6 +511,32 @@ static const char colours_svg[] =
     "<circle cx='12' cy='10' r='6' fill='#FF4444' opacity='0.8'/>"
     "<circle cx='20' cy='10' r='6' fill='#44CC44' opacity='0.8'/>"
     "<circle cx='16' cy='18' r='6' fill='#4444FF' opacity='0.8'/>"
+    "</svg>";
+
+// -- Theme icons -------------------------------------------------------------
+
+static const char theme_system_svg[] =
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+    "<rect x='3' y='5' width='26' height='18' rx='2' fill='#F3F3F3' stroke='#555'"
+    " stroke-width='1.5'/>"
+    "<path d='M16 5.75h11a1.25 1.25 0 0 1 1.25 1.25v14a1.25 1.25 0 0 1-1.25 1.25H16z'"
+    " fill='#333'/>"
+    "<path d='M12 27h8M16 23v4' stroke='#555' stroke-width='2'"
+    " stroke-linecap='round'/>"
+    "</svg>";
+
+static const char theme_light_svg[] =
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+    "<circle cx='16' cy='16' r='6' fill='#F4B400'/>"
+    "<path d='M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8"
+    "M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8' stroke='#F4B400' stroke-width='2.5'"
+    " stroke-linecap='round'/>"
+    "</svg>";
+
+static const char theme_dark_svg[] =
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+    "<path d='M20 4a12 12 0 1 0 8 20A10 10 0 0 1 20 4z' fill='#7B8CDE'"
+    " stroke='#4A5699' stroke-width='1'/>"
     "</svg>";
 
 // Helper to create a bitmap bundle from embedded SVG data. When wxHAS_SVG is
@@ -846,6 +883,22 @@ MyFrame::MyFrame()
         bar->SetButtonMaxSizeClass(ID_SMALL_BUTTON_5, wxRIBBON_BUTTONBAR_BUTTON_MEDIUM);
         bar->AddButton(ID_SMALL_BUTTON_6, "Button 6", ribbon_large);
         bar->SetButtonMaxSizeClass(ID_SMALL_BUTTON_6, wxRIBBON_BUTTONBAR_BUTTON_MEDIUM);
+
+        // Switching between the system, light and dark themes, like the
+        // "Theme" menu in the widgets sample.
+        panel = new wxRibbonPanel(page, wxID_ANY, "Theme",
+            MakeSvgBundle(theme_system_svg, wxSize(16, 16)));
+        m_theme_bar = new wxRibbonButtonBar(panel, wxID_ANY);
+        m_theme_bar->AddToggleButton(ID_THEME_SYSTEM, "System",
+            MakeSvgBundle(theme_system_svg, wxSize(32, 32)));
+        m_theme_bar->AddToggleButton(ID_THEME_LIGHT, "Light",
+            MakeSvgBundle(theme_light_svg, wxSize(32, 32)));
+        m_theme_bar->AddToggleButton(ID_THEME_DARK, "Dark",
+            MakeSvgBundle(theme_dark_svg, wxSize(32, 32)));
+        m_theme_bar->SetKeyTip(ID_THEME_SYSTEM, "TS");
+        m_theme_bar->SetKeyTip(ID_THEME_LIGHT, "TL");
+        m_theme_bar->SetKeyTip(ID_THEME_DARK, "TD");
+        m_theme_bar->ToggleButton(ID_THEME_SYSTEM, true);
     }
     m_ribbon->Realize();
 
@@ -1791,6 +1844,44 @@ void MyFrame::OnPlusMinus(wxRibbonButtonBarEvent& evt)
             wxArtProvider::GetBitmap(wxART_MINUS, wxART_OTHER, wxSize(24, 24)));
         m_plus_minus_state = true;
     }
+}
+
+void MyFrame::OnTheme(wxRibbonButtonBarEvent& evt)
+{
+    const int id = evt.GetId();
+
+    wxApp::Appearance appearance;
+    wxString name;
+    switch ( id )
+    {
+        case ID_THEME_DARK:
+            appearance = wxApp::Appearance::Dark;
+            name = "dark";
+            break;
+        case ID_THEME_LIGHT:
+            appearance = wxApp::Appearance::Light;
+            name = "light";
+            break;
+        default:
+            appearance = wxApp::Appearance::System;
+            name = "system";
+            break;
+    }
+
+    const bool ok =
+        wxTheApp->SetAppearance(appearance) == wxApp::AppearanceResult::Ok;
+    if ( ok )
+        AddText("Using the " + name + " theme.");
+    else
+        AddText("Failed to switch to the " + name + " theme.");
+
+    // The clicked toggle button changes its state on its own, so update all
+    // of them to only show the theme in use as toggled.
+    if ( ok )
+        m_theme_id = id;
+    m_theme_bar->ToggleButton(ID_THEME_SYSTEM, m_theme_id == ID_THEME_SYSTEM);
+    m_theme_bar->ToggleButton(ID_THEME_LIGHT, m_theme_id == ID_THEME_LIGHT);
+    m_theme_bar->ToggleButton(ID_THEME_DARK, m_theme_id == ID_THEME_DARK);
 }
 
 void MyFrame::OnChangeLabel(wxRibbonButtonBarEvent& evt)
