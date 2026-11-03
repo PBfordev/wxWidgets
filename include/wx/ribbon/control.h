@@ -94,6 +94,10 @@ public:
 protected:
     wxRibbonArtProvider* m_art;
 
+    // Repaints the control, as it looks different when it is disabled. This
+    // is also called when one of its parents is enabled or disabled.
+    virtual void DoEnable(bool enable) override;
+
     virtual wxSize DoGetNextSmallerSize(wxOrientation direction,
                                         wxSize relative_to) const;
     virtual wxSize DoGetNextLargerSize(wxOrientation direction,

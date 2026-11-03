@@ -105,6 +105,13 @@ bool wxRibbonControl::Realize()
     return true;
 }
 
+void wxRibbonControl::DoEnable(bool enable)
+{
+    wxControl::DoEnable(enable);
+
+    Refresh(false);
+}
+
 wxRibbonBar* wxRibbonControl::GetAncestorRibbonBar()const
 {
     for ( wxWindow* win = GetParent(); win; win = win->GetParent() )

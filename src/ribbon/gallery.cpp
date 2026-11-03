@@ -742,6 +742,8 @@ void wxRibbonGallery::OnPaint(wxPaintEvent& WXUNUSED(evt))
         m_art->DrawGalleryItemBackground(dc, this, offset_pos, item);
         // Resolve bitmap bundle for current DPI
         wxBitmap bmp = item->GetBitmap(this);
+        if ( bmp.IsOk() && !IsEnabled() )
+            wxBitmap::MakeDisabled(bmp);
         if (bmp.IsOk())
             dc.DrawBitmap(bmp, offset_pos.GetLeft() + padding_left,
                 offset_pos.GetTop() + padding_top);
@@ -1161,17 +1163,17 @@ wxRibbonGalleryItem* wxRibbonGallery::GetActiveItem() const
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetUpButtonState() const
 {
-    return m_up_button_state;
+    return IsEnabled() ? m_up_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetDownButtonState() const
 {
-    return m_down_button_state;
+    return IsEnabled() ? m_down_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetExtensionButtonState() const
 {
-    return m_extension_button_state;
+    return IsEnabled() ? m_extension_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 #if wxUSE_ACCESSIBILITY

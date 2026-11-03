@@ -900,7 +900,8 @@ void wxRibbonPanel::AppendFocusableControls(std::vector<wxRibbonControl*>& contr
           node; node = node->GetNext() )
     {
         wxRibbonControl* control = wxDynamicCast(node->GetData(), wxRibbonControl);
-        if ( control != nullptr && control->IsShown() && control->HasFocusableItems() )
+        if ( control != nullptr && control->IsShown() && control->IsEnabled() &&
+             control->HasFocusableItems() )
             controls.push_back(control);
     }
 
