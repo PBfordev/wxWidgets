@@ -43,11 +43,11 @@ CC_DEFINE =
 .c.obj :
 	cc $(CFLAGS)$(CC_DEFINE) $(MMS$TARGET_NAME).c
 
-OBJECTS=art_aui.obj,art_internal.obj,art_msw.obj,art_msw_flat.obj,bar.obj,buttonbar.obj,\
+OBJECTS=art_aui.obj,art_internal.obj,art_mso.obj,art_msw.obj,art_msw_flat.obj,bar.obj,buttonbar.obj,\
 	control_ribbon.obj,gallery.obj,page.obj,panel.obj,\
 	toolbar_ribbon.obj
 
-SOURCES=art_aui.cpp art_internal.cpp art_msw.cpp art_msw_flat.cpp bar.cpp buttonbar.cpp\
+SOURCES=art_aui.cpp art_internal.cpp art_mso.cpp art_msw.cpp art_msw_flat.cpp bar.cpp buttonbar.cpp\
 	control.cpp gallery.cpp page.cpp panel.cpp toolbar.cpp
 
 all : $(SOURCES)
@@ -72,6 +72,7 @@ $(OBJECTS) : [--.include.wx]setup.h
 
 art_aui.obj : art_aui.cpp
 art_internal.obj : art_internal.cpp
+art_mso.obj : art_mso.cpp
 art_msw.obj : art_msw.cpp
 art_msw_flat.obj : art_msw_flat.cpp
 bar.obj : bar.cpp

@@ -742,6 +742,8 @@ void wxRibbonGallery::OnPaint(wxPaintEvent& WXUNUSED(evt))
         m_art->DrawGalleryItemBackground(dc, this, offset_pos, item);
         // Resolve bitmap bundle for current DPI
         wxBitmap bmp = item->GetBitmap(this);
+        if ( bmp.IsOk() && !IsEnabled() )
+            wxBitmap::MakeDisabled(bmp);
         if (bmp.IsOk())
             dc.DrawBitmap(bmp, offset_pos.GetLeft() + padding_left,
                 offset_pos.GetTop() + padding_top);
@@ -891,7 +893,7 @@ void wxRibbonGallery::CalculateMinSize()
             m_art->GetMetric(wxRIBBON_ART_GALLERY_BITMAP_PADDING_TOP_SIZE) +
             m_art->GetMetric(wxRIBBON_ART_GALLERY_BITMAP_PADDING_BOTTOM_SIZE));
 
-        wxMemoryDC dc;
+        wxInfoDC dc(this);
         SetMinSize(m_art->GetGallerySize(dc, this, m_bitmap_padded_size));
 
         // The best size is displaying several items
@@ -912,7 +914,7 @@ bool wxRibbonGallery::Layout()
     if(m_art == nullptr)
         return false;
 
-    wxMemoryDC dc;
+    wxInfoDC dc(this);
     wxPoint origin;
     wxSize client_size = m_art->GetGalleryClientSize(dc, this, GetSize(),
         &origin, &m_scroll_up_button_rect, &m_scroll_down_button_rect,
@@ -995,7 +997,7 @@ wxSize wxRibbonGallery::DoGetNextSmallerSize(wxOrientation direction,
     if(m_art == nullptr)
         return relative_to;
 
-    wxMemoryDC dc;
+    wxInfoDC dc(const_cast<wxRibbonGallery*>(this));
 
     wxSize client = m_art->GetGalleryClientSize(dc, this, relative_to, nullptr,
         nullptr, nullptr, nullptr);
@@ -1047,7 +1049,7 @@ wxSize wxRibbonGallery::DoGetNextLargerSize(wxOrientation direction,
     if(m_art == nullptr)
         return relative_to;
 
-    wxMemoryDC dc;
+    wxInfoDC dc(const_cast<wxRibbonGallery*>(this));
 
     wxSize client = m_art->GetGalleryClientSize(dc, this, relative_to, nullptr,
         nullptr, nullptr, nullptr);
@@ -1161,17 +1163,17 @@ wxRibbonGalleryItem* wxRibbonGallery::GetActiveItem() const
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetUpButtonState() const
 {
-    return m_up_button_state;
+    return IsEnabled() ? m_up_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetDownButtonState() const
 {
-    return m_down_button_state;
+    return IsEnabled() ? m_down_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 wxRibbonGalleryButtonState wxRibbonGallery::GetExtensionButtonState() const
 {
-    return m_extension_button_state;
+    return IsEnabled() ? m_extension_button_state : wxRIBBON_GALLERY_BUTTON_DISABLED;
 }
 
 #if wxUSE_ACCESSIBILITY
