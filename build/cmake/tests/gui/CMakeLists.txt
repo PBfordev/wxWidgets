@@ -69,6 +69,7 @@ set(TEST_GUI_SRC
     controls/radioboxtest.cpp
     controls/radiobuttontest.cpp
     controls/rearrangelisttest.cpp
+    controls/ribbontest.cpp
     controls/richtextctrltest.cpp
     controls/searchctrltest.cpp
     controls/simplebooktest.cpp
@@ -276,4 +277,7 @@ if(wxUSE_WEBVIEW)
 endif()
 if(wxUSE_PROPGRID)
     wx_exe_link_libraries(test_gui wxpropgrid)
+endif()
+if(wxUSE_RIBBON)
+    wx_exe_link_libraries(test_gui wxribbon)
 endif()

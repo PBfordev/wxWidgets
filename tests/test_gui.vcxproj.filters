@@ -203,6 +203,9 @@
     <ClCompile Include="controls\rearrangelisttest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="controls\ribbontest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="geometry\rect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
