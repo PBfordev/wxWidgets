@@ -216,6 +216,7 @@
             controls/radioboxtest.cpp
             controls/radiobuttontest.cpp
             controls/rearrangelisttest.cpp
+            controls/ribbontest.cpp
             controls/richtextctrltest.cpp
             controls/searchctrltest.cpp
             controls/simplebooktest.cpp
@@ -303,6 +304,7 @@
         <wx-lib>xml</wx-lib>
         <wx-lib>html</wx-lib>
         <wx-lib>propgrid</wx-lib>
+        <wx-lib>ribbon</wx-lib>
         <wx-lib>core</wx-lib>
         <wx-lib>net</wx-lib>
         <wx-lib>base</wx-lib>
