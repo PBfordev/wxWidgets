@@ -25,6 +25,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/ribbon/art.h"
+#include "wx/ribbon/art_mso.h"
 #include "wx/ribbon/bar.h"
 #include "wx/ribbon/buttonbar.h"
 #include "wx/ribbon/gallery.h"
@@ -45,8 +46,21 @@
 // provider only needs to be added here to be tested too.
 //
 // Note that wxRibbonDefaultArtProvider is one of these classes.
-#define wxRIBBON_TEST_ART_PROVIDERS \
+#define wxRIBBON_TEST_STANDARD_ART_PROVIDERS \
     wxRibbonMSWArtProvider, wxRibbonMSWFlatArtProvider, wxRibbonAUIArtProvider
+
+// wxRibbonMSOArtProvider is only available with SVG and graphics context
+// support.
+#if defined(wxHAS_SVG) && wxUSE_GRAPHICS_CONTEXT
+    #define wxRIBBON_TEST_MSO_ART_PROVIDER 1
+
+    #define wxRIBBON_TEST_ART_PROVIDERS \
+        wxRIBBON_TEST_STANDARD_ART_PROVIDERS, wxRibbonMSOArtProvider
+#else
+    #define wxRIBBON_TEST_MSO_ART_PROVIDER 0
+
+    #define wxRIBBON_TEST_ART_PROVIDERS wxRIBBON_TEST_STANDARD_ART_PROVIDERS
+#endif
 
 // To run the tests with a single art provider only, select them by the end of
 // their names, e.g.
@@ -1717,6 +1731,291 @@ TEMPLATE_TEST_CASE("Ribbon::ArtClone", "[ribbon][art]",
         CHECK( clone->GetColour(id) == art.GetColour(id) );
     }
 }
+
+#if wxRIBBON_TEST_MSO_ART_PROVIDER
+
+TEST_CASE("Ribbon::MSOArtAppearance", "[ribbon][art]")
+{
+    typedef wxRibbonMSOArtProvider::Appearance Appearance;
+
+    wxRibbonMSOArtProvider art;
+
+    const wxColour primary(10, 20, 30);
+    const wxColour secondary(200, 100, 50);
+    const wxColour tertiary(250, 250, 250);
+
+    SECTION("System accent")
+    {
+        CHECK( art.IsUsingSystemAccentColour() );
+
+        art.UseSystemAccentColour(false);
+        CHECK_FALSE( art.IsUsingSystemAccentColour() );
+
+        art.UseSystemAccentColour();
+        CHECK( art.IsUsingSystemAccentColour() );
+    }
+
+    SECTION("Colour scheme")
+    {
+        wxColour primary2, secondary2, tertiary2;
+
+        // No colours are set initially.
+        art.GetAppearanceColourScheme(Appearance::Dark,
+                                      &primary2, &secondary2, &tertiary2);
+        CHECK_FALSE( primary2.IsOk() );
+        CHECK_FALSE( secondary2.IsOk() );
+        CHECK_FALSE( tertiary2.IsOk() );
+
+        art.SetAppearanceColourScheme(Appearance::Dark,
+                                      primary, secondary, tertiary);
+
+        art.GetAppearanceColourScheme(Appearance::Dark,
+                                      &primary2, &secondary2, &tertiary2);
+        CHECK( primary2 == primary );
+        CHECK( secondary2 == secondary );
+        CHECK( tertiary2 == tertiary );
+
+        // The other appearance is not affected.
+        art.GetAppearanceColourScheme(Appearance::Light,
+                                      &primary2, &secondary2, &tertiary2);
+        CHECK_FALSE( primary2.IsOk() );
+        CHECK_FALSE( secondary2.IsOk() );
+        CHECK_FALSE( tertiary2.IsOk() );
+
+        // Only some of the colours can be set and any pointer can be null.
+        art.SetAppearanceColourScheme(Appearance::Light, primary);
+
+        art.GetAppearanceColourScheme(Appearance::Light,
+                                      &primary2, nullptr, &tertiary2);
+        CHECK( primary2 == primary );
+        CHECK_FALSE( tertiary2.IsOk() );
+
+        art.ResetAppearanceColours(Appearance::Dark);
+
+        art.GetAppearanceColourScheme(Appearance::Dark,
+                                      &primary2, &secondary2, &tertiary2);
+        CHECK_FALSE( primary2.IsOk() );
+        CHECK_FALSE( secondary2.IsOk() );
+        CHECK_FALSE( tertiary2.IsOk() );
+
+        art.GetAppearanceColourScheme(Appearance::Light,
+                                      &primary2, nullptr, nullptr);
+        CHECK( primary2 == primary );
+    }
+
+    SECTION("Individual colour")
+    {
+        const int id = wxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR;
+
+        CHECK_FALSE( art.GetAppearanceColour(Appearance::Light, id).IsOk() );
+        CHECK_FALSE( art.GetAppearanceColour(Appearance::Dark, id).IsOk() );
+
+        // Setting the colour for both appearances makes it used whichever of
+        // them is the current one.
+        art.SetAppearanceColour(Appearance::Light, id, secondary);
+        art.SetAppearanceColour(Appearance::Dark, id, secondary);
+
+        CHECK( art.GetAppearanceColour(Appearance::Light, id) == secondary );
+        CHECK( art.GetAppearanceColour(Appearance::Dark, id) == secondary );
+        CHECK( art.GetColour(id) == secondary );
+
+        // An invalid colour removes the override.
+        art.SetAppearanceColour(Appearance::Light, id, wxNullColour);
+        CHECK_FALSE( art.GetAppearanceColour(Appearance::Light, id).IsOk() );
+        CHECK( art.GetAppearanceColour(Appearance::Dark, id) == secondary );
+
+        art.ResetAppearanceColours(Appearance::Dark);
+        CHECK_FALSE( art.GetAppearanceColour(Appearance::Dark, id).IsOk() );
+        CHECK( art.GetColour(id) != secondary );
+    }
+
+    SECTION("Clone")
+    {
+        art.UseSystemAccentColour(false);
+        art.SetAppearanceColourScheme(Appearance::Dark,
+                                      primary, secondary, tertiary);
+        art.SetAppearanceColour(Appearance::Light,
+                                wxRIBBON_ART_TAB_LABEL_COLOUR, secondary);
+
+        const std::unique_ptr<wxRibbonArtProvider> clone(art.Clone());
+        wxRibbonMSOArtProvider* const
+            mso = dynamic_cast<wxRibbonMSOArtProvider*>(clone.get());
+        REQUIRE( mso );
+
+        CHECK_FALSE( mso->IsUsingSystemAccentColour() );
+
+        wxColour primary2, secondary2, tertiary2;
+        mso->GetAppearanceColourScheme(Appearance::Dark,
+                                       &primary2, &secondary2, &tertiary2);
+        CHECK( primary2 == primary );
+        CHECK( secondary2 == secondary );
+        CHECK( tertiary2 == tertiary );
+
+        CHECK( mso->GetAppearanceColour(Appearance::Light,
+                                        wxRIBBON_ART_TAB_LABEL_COLOUR)
+                    == secondary );
+    }
+}
+
+namespace
+{
+
+// Check that the two providers have the same settings.
+void CheckSameMSOArt(const wxRibbonMSOArtProvider& art1,
+                     const wxRibbonMSOArtProvider& art2)
+{
+    typedef wxRibbonMSOArtProvider::Appearance Appearance;
+
+    CHECK( art1.GetFlags() == art2.GetFlags() );
+    CHECK( art1.IsUsingSystemAccentColour() ==
+            art2.IsUsingSystemAccentColour() );
+
+    for ( int id = wxRIBBON_ART_TAB_SEPARATION_SIZE;
+          id <= wxRIBBON_ART_GALLERY_BITMAP_PADDING_BOTTOM_SIZE;
+          ++id )
+    {
+        INFO("Metric " << id);
+        CHECK( art1.GetMetric(id) == art2.GetMetric(id) );
+    }
+
+    for ( int id = wxRIBBON_ART_PANEL_LABEL_FONT;
+          id <= wxRIBBON_ART_TAB_LABEL_FONT;
+          ++id )
+    {
+        INFO("Font " << id);
+        CHECK( art1.GetFont(id) == art2.GetFont(id) );
+    }
+
+    for ( int id = wxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR;
+          id <= wxRIBBON_ART_BUTTON_BAR_LABEL_HIGHLIGHT_GRADIENT_TOP_COLOUR;
+          ++id )
+    {
+        INFO("Colour " << id);
+        CHECK( art1.GetColour(id) == art2.GetColour(id) );
+        CHECK( art1.GetAppearanceColour(Appearance::Light, id) ==
+                art2.GetAppearanceColour(Appearance::Light, id) );
+        CHECK( art1.GetAppearanceColour(Appearance::Dark, id) ==
+                art2.GetAppearanceColour(Appearance::Dark, id) );
+    }
+
+    wxColour primary1, secondary1, tertiary1;
+    wxColour primary2, secondary2, tertiary2;
+    art1.GetColourScheme(&primary1, &secondary1, &tertiary1);
+    art2.GetColourScheme(&primary2, &secondary2, &tertiary2);
+    CHECK( primary1 == primary2 );
+    CHECK( secondary1 == secondary2 );
+    CHECK( tertiary1 == tertiary2 );
+
+    const Appearance appearances[] = { Appearance::Light, Appearance::Dark };
+    for ( const Appearance appearance : appearances )
+    {
+        art1.GetAppearanceColourScheme(appearance,
+                                       &primary1, &secondary1, &tertiary1);
+        art2.GetAppearanceColourScheme(appearance,
+                                       &primary2, &secondary2, &tertiary2);
+        CHECK( primary1 == primary2 );
+        CHECK( secondary1 == secondary2 );
+        CHECK( tertiary1 == tertiary2 );
+    }
+}
+
+// Draw some elements, including the glyphs whose bitmaps are cached, with the
+// given provider and return the result.
+wxImage DrawWithMSOArt(wxRibbonArtProvider& art, wxRibbonBar* bar)
+{
+    const wxSize size = bar->FromDIP(wxSize(120, 30));
+    const int button = size.y - bar->FromDIP(10);
+
+    wxBitmap bmp(size);
+    {
+        wxMemoryDC dc(bmp);
+        art.DrawTabCtrlBackground(dc, bar, wxRect(size));
+        art.DrawTabSeparator(dc, bar, wxRect(10, 0, 10, size.y), 0.5);
+        art.DrawToggleButton(dc, bar, wxRect(30, 5, button, button),
+                             wxRIBBON_BAR_PINNED);
+        art.DrawHelpButton(dc, bar, wxRect(70, 5, button, button));
+    }
+
+    return bmp.ConvertToImage();
+}
+
+bool AreSameImages(const wxImage& image1, const wxImage& image2)
+{
+    return image1.GetSize() == image2.GetSize() &&
+           memcmp(image1.GetData(), image2.GetData(),
+                  3*image1.GetWidth()*image1.GetHeight()) == 0;
+}
+
+} // anonymous namespace
+
+typedef RibbonTestCase<wxRibbonMSOArtProvider> RibbonMSOTestCase;
+
+// Check that the provider can be copied after it was used for drawing, i.e.
+// with its caches filled, and that the copy is independent of the original.
+TEST_CASE_METHOD(RibbonMSOTestCase, "Ribbon::MSOArtCopy", "[ribbon][art]")
+{
+    typedef wxRibbonMSOArtProvider::Appearance Appearance;
+
+    wxRibbonMSOArtProvider* const
+        art = dynamic_cast<wxRibbonMSOArtProvider*>(m_bar->GetArtProvider());
+    REQUIRE( art );
+
+    const wxColour colour(1, 2, 3);
+    art->UseSystemAccentColour(false);
+    art->SetAppearanceColour(Appearance::Light,
+                             wxRIBBON_ART_TAB_LABEL_COLOUR, colour);
+    art->SetAppearanceColour(Appearance::Dark,
+                             wxRIBBON_ART_TAB_LABEL_COLOUR, colour);
+    art->SetMetric(wxRIBBON_ART_TAB_SEPARATION_SIZE, 17);
+    Relayout();
+
+    Repaint(m_host);
+    Repaint(m_buttons);
+    Repaint(m_tools);
+    const wxImage imageOrig = DrawWithMSOArt(*art, m_bar);
+
+    wxRibbonMSOArtProvider copy(*art);
+    CheckSameMSOArt(copy, *art);
+    CHECK( AreSameImages(DrawWithMSOArt(copy, m_bar), imageOrig) );
+
+    wxRibbonMSOArtProvider assigned;
+    assigned = copy;
+    CheckSameMSOArt(assigned, *art);
+    CHECK( AreSameImages(DrawWithMSOArt(assigned, m_bar), imageOrig) );
+
+    // Changing the copy, including drawing with it in different colours, must
+    // not affect the original.
+    const wxColour colourOther(4, 5, 6);
+    copy.SetColourScheme(wxColour(32, 32, 32), wxColour(200, 100, 50),
+                         wxColour(250, 250, 250));
+    copy.SetColour(wxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR, colourOther);
+    copy.SetAppearanceColour(Appearance::Light,
+                             wxRIBBON_ART_TAB_LABEL_COLOUR, colourOther);
+    copy.SetMetric(wxRIBBON_ART_TAB_SEPARATION_SIZE, 3);
+    CHECK_FALSE( AreSameImages(DrawWithMSOArt(copy, m_bar), imageOrig) );
+
+    CHECK( art->GetColour(wxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR) != colourOther );
+    CHECK( art->GetAppearanceColour(Appearance::Light,
+                                    wxRIBBON_ART_TAB_LABEL_COLOUR) == colour );
+    CHECK( art->GetMetric(wxRIBBON_ART_TAB_SEPARATION_SIZE) ==
+            m_bar->FromDIP(17) );
+    CheckSameMSOArt(assigned, *art);
+    CHECK( AreSameImages(DrawWithMSOArt(*art, m_bar), imageOrig) );
+
+    // The copy remains usable after the original is destroyed.
+    wxRibbonMSOArtProvider* const artNew = new wxRibbonMSOArtProvider(*art);
+    m_bar->SetArtProvider(artNew);
+
+    CheckSameMSOArt(*artNew, assigned);
+    CHECK( AreSameImages(DrawWithMSOArt(*artNew, m_bar), imageOrig) );
+
+    Relayout();
+    Repaint(m_host);
+    Repaint(m_buttons);
+    Repaint(m_tools);
+}
+
+#endif // wxRIBBON_TEST_MSO_ART_PROVIDER
 
 // Check that everything can be drawn and that the elements are where they are
 // expected to be.
